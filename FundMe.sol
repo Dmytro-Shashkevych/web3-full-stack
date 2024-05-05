@@ -13,7 +13,7 @@ contract FundMe {
     mapping(address => uint256) public addressToAmountFunded;
     address public immutable i_owner;
 
-    // immidiately called whenever you deploy a function
+    // immediately called whenever you deploy a function
     constructor() {
         i_owner = msg.sender;
     }
@@ -43,20 +43,20 @@ contract FundMe {
         // reverts automatically
         // payable(msg.sender).transfer(address(this).balance);
 
-        // send (2300 gas, returns bool whether or not it was successfull)
+        // send (2300 gas, returns bool whether or not it was successfully)
         // reverts by adding require check for the isSendSuccess step
         // bool isSendSuccess = payable(msg.sender).send(address(this).balance);
 
-        // require(isSendSuccess, "Send wasn't successfull");
+        // require(isSendSuccess, "Send wasn't successfully");
 
         // call - lower level - without ABI
-        // most prefered way to send ETH or native currency !!!
+        // most preferred way to send ETH or native currency !!!
 
         (bool isCallSuccess, ) = payable(msg.sender).call{
             value: address(this).balance
         }("");
 
-        require(isCallSuccess, "Call lower level wasn't successfull");
+        require(isCallSuccess, "Call lower level wasn't successfully");
     }
 
     modifier onlyOwner() {
