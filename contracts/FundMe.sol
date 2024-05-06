@@ -4,12 +4,10 @@ pragma solidity ^0.8.18;
 
 import {PriceConverter} from "./PriceConverter.sol";
 
-    error NotOwner();
+error NotOwner();
 
 contract FundMe {
-    // try command + J
-
-
+    // Alt-Shift-Cmd-P
     using PriceConverter for uint256;
 
     uint256 public constant MINIMUM_USD = 5 * 1e18;
