@@ -84,9 +84,55 @@ contract FundMeTest is Test {
         fundMe.withdraw();
     }
 
-    function testWithdrawSuccessMadeByOwner() public funded {
-        vm.expectRevert();
-        vm.prank(ALICE);
+    function testWithdrawWithASignleFunder() public funded {
+        // arrange
+        uint256 startingOwnerBalance = fundMe.getOwner().balance;
+        uint256 startingFundMeContractBalance = address(fundMe).balance;
+
+        // act
+        vm.prank(fundMe.getOwner());
         fundMe.withdraw();
+
+        // assert
+        uint256 endingOwnerBalance = fundMe.getOwner().balance;
+        uint256 endingFundMeContractBalance = address(fundMe).balance;
+
+        assertEq(endingOwnerBalance, startingOwnerBalance + SEND_VALUE);
+        assertEq(
+            endingFundMeContractBalance,
+            startingFundMeContractBalance - SEND_VALUE
+        );
+    }
+
+    function testWithdrawFromMultipleFunders() public funded {
+        // arrange
+        uint160 numberOfFunders = 10;
+        uint160 startingFunderIndex = 1;
+
+        for (uint160 i = startingFunderIndex; i <= numberOfFunders; i++) {
+            // prank - create new address and sets a next call to him
+            // deal - fund with some Ether
+            // hoax = prank + deal - creates account that has some Ether
+
+            hoax(address(i), SEND_VALUE);
+            fundMe.fund{value: SEND_VALUE}();
+        }
+
+        uint256 startingOwnerBalance = fundMe.getOwner().balance;
+        uint256 startingFundMeContractBalance = address(fundMe).balance;
+
+        // act
+        vm.startPrank(fundMe.getOwner());
+        /*
+        everything in between will be send by address we set in startPrank
+         */
+        fundMe.withdraw();
+        vm.stopPrank();
+
+        // assert
+        assert(
+            startingFundMeContractBalance + startingOwnerBalance ==
+                fundMe.getOwner().balance
+        );
     }
 }
