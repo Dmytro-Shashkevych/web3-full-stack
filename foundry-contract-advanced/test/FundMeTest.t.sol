@@ -148,4 +148,36 @@ contract FundMeTest is Test {
                 fundMe.getOwner().balance
         );
     }
+
+    function testWithdrawFromMultipleFundersCheaper() public funded {
+        // arrange
+        uint160 numberOfFunders = 10;
+        uint160 startingFunderIndex = 1;
+
+        for (uint160 i = startingFunderIndex; i <= numberOfFunders; i++) {
+            // prank - create new address and sets a next call to him
+            // deal - fund with some Ether
+            // hoax = prank + deal - creates account that has some Ether
+
+            hoax(address(i), SEND_VALUE);
+            fundMe.fund{value: SEND_VALUE}();
+        }
+
+        uint256 startingOwnerBalance = fundMe.getOwner().balance;
+        uint256 startingFundMeContractBalance = address(fundMe).balance;
+
+        // act
+        vm.startPrank(fundMe.getOwner());
+        /*
+        everything in between will be send by address we set in startPrank
+         */
+        fundMe.cheaperWithdraw();
+        vm.stopPrank();
+
+        // assert
+        assert(
+            startingFundMeContractBalance + startingOwnerBalance ==
+                fundMe.getOwner().balance
+        );
+    }
 }
