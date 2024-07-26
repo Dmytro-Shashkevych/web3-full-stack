@@ -21,7 +21,7 @@ contract InteractionsTest is Test {
         vm.deal(ALICE, INITIAL_BALANCE);
     }
 
-    function  testUserCanFundInteractions() public {
+    function testUserCanFundInteractions() public {
         FundFundMe fundFundMe = new FundFundMe();
         fundFundMe.fundFundMe(address(fundMe));
 
@@ -29,7 +29,5 @@ contract InteractionsTest is Test {
         withdrawFundMe.withdrawFundMe(address(fundMe));
 
         assert(address(fundMe).balance == 0);
-
-
     }
 }
