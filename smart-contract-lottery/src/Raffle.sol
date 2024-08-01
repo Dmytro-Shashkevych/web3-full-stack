@@ -23,6 +23,8 @@
 
 pragma solidity ^0.8.18;
 
+import {VRFCoordinatorV2Interface} from "@chainlink/contracts/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
+
 /**
  * @title a sample raffle contract
  * @author Dmytro Shashkevych
@@ -33,22 +35,36 @@ contract Raffle {
     error Raffle__NotEnoughEntrenceFee();
     error Raffle__NotEnoughTimeToPickWinner();
 
+    uint16 private constant REQUEST_CONFIRMATIONS = 3;
+    uint32 private constant NUM_WORDS = 1;
+
     uint256 private immutable i_entranceFee;
     // @dev Duration of the lottery in seconds
     uint256 private immutable i_interval;
-    address private immutable i_vrfCoordinator;
+    VRFCoordinatorV2Interface private immutable i_vrfCoordinator;
     bytes32 private immutable i_gasLane;
+    uint64 private immutable i_subId;
+    uint32 private immutable i_callbackGasLimit;
 
     address[] private s_players;
     uint256 private s_lastTimeStemp;
 
     event EnteredRaffle(address indexed player);
 
-    constructor(uint256 entranceFee, uint256 interval, address vrfCoordinator, bytes32 gasLane) {
+    constructor(
+        uint256 entranceFee,
+        uint256 interval,
+        address vrfCoordinator,
+        bytes32 gasLane,
+        uint64 subId,
+        uint32 callbackGasLimit
+    ) {
         i_entranceFee = entranceFee;
         i_interval = interval;
-        i_vrfCoordinator = vrfCoordinator;
+        i_vrfCoordinator = VRFCoordinatorV2Interface(vrfCoordinator);
         i_gasLane = gasLane;
+        i_subId = subId;
+        i_callbackGasLimit = callbackGasLimit;
         s_lastTimeStemp = block.timestamp;
     }
 
@@ -61,16 +77,16 @@ contract Raffle {
     }
 
     function pickWinner() external {
-        // if (block.timestamp - s_lastTimeStemp < i_interval) {
-        //     revert Raffle__NotEnoughTimeToPickWinner();
-        // }
-        //         unit256 requestId = i_vrfCoordinator.requestRandomWords(
-        //     i_gasLane,
-        //     uint64 subId,
-        //     uint16 requestConfirmations,
-        //     uint32 callbackGasLimit,
-        //     uint32 numWords
-        //   )
+        if (block.timestamp - s_lastTimeStemp < i_interval) {
+            revert Raffle__NotEnoughTimeToPickWinner();
+        }
+        uint256 requestId = i_vrfCoordinator.requestRandomWords(
+            i_gasLane,
+            i_subId,
+            REQUEST_CONFIRMATIONS,
+            i_callbackGasLimit,
+            NUM_WORDS
+        );
     }
 
     function getEntranceFee() external view returns (uint256) {
